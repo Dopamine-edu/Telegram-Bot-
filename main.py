@@ -5,7 +5,7 @@ from telegram import Update, ReplyKeyboardMarkup, KeyboardButton
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters, ContextTypes
 
 # Bot token
-TELEGRAM_TOKEN = "7792624440:AAHJP9eeCssIISrkiirSMR4Rk4uC2qUV9SM"
+TELEGRAM_TOKEN = "7792624440:"
 
 # In-memory user data
 user_modes = {}
