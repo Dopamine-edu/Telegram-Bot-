@@ -1,10 +1,10 @@
 import re
 import json
-import os
 from telegram import Update, ReplyKeyboardMarkup, KeyboardButton
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters, ContextTypes
+from keep_alive import keep_alive
 
-TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
+TELEGRAM_TOKEN = "7792624440:AAHJP9eeCssIISrkiirSMR4Rk4uC2qUV9SM"
 
 user_modes = {}
 user_quiz_data = {}
@@ -53,12 +53,10 @@ async def handle_mode_selection(update: Update, context: ContextTypes.DEFAULT_TY
         if not quizzes:
             await update.message.reply_text("No quizzes added yet.")
         else:
-            filename = f"quizzes_{user_id}.json"
-            with open(filename, "w", encoding="utf-8") as f:
+            with open("quizzes.json", "w", encoding="utf-8") as f:
                 json.dump(quizzes, f, indent=2, ensure_ascii=False)
-            with open(filename, "rb") as f:
+            with open("quizzes.json", "rb") as f:
                 await update.message.reply_document(f)
-            os.remove(filename)
 
 async def handle_poll_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     poll = update.message.poll
@@ -70,7 +68,6 @@ async def handle_poll_message(update: Update, context: ContextTypes.DEFAULT_TYPE
 
     question = poll.question
     options = [opt.text for opt in poll.options]
-    is_anonymous = poll.is_anonymous
     correct_option_id = poll.correct_option_id if poll.type == "quiz" else None
     explanation = poll.explanation if hasattr(poll, "explanation") else ""
 
@@ -83,10 +80,9 @@ async def handle_poll_message(update: Update, context: ContextTypes.DEFAULT_TYPE
             options=options,
             type="quiz",
             correct_option_id=correct_option_id,
-            is_anonymous=is_anonymous,
+            is_anonymous=poll.is_anonymous,
             explanation=explanation
         )
-
     elif mode == "json":
         clean_q = clean_question_for_json(question)
         clean_exp = clean_explanation_for_json(explanation or "")
@@ -99,9 +95,10 @@ async def handle_poll_message(update: Update, context: ContextTypes.DEFAULT_TYPE
         user_quiz_data.setdefault(user_id, []).append(quiz_data)
         await update.message.reply_text("Quiz saved for JSON export.")
 
-# Setup the bot
-app = ApplicationBuilder().token(TELEGRAM_TOKEN).build()
-app.add_handler(CommandHandler("start", start))
-app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_mode_selection))
-app.add_handler(MessageHandler(filters.POLL, handle_poll_message))
-app.run_polling()
+if __name__ == "__main__":
+    keep_alive()
+    app = ApplicationBuilder().token(TELEGRAM_TOKEN).build()
+    app.add_handler(CommandHandler("start", start))
+    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_mode_selection))
+    app.add_handler(MessageHandler(filters.POLL, handle_poll_message))
+    app.run_polling()
