@@ -1,11 +1,8 @@
 import re
 import json
+import os
 from telegram import Update, ReplyKeyboardMarkup, KeyboardButton
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters, ContextTypes
-from keep_alive import keep_alive  # Import the keep_alive function
-
-# Start Flask server to keep the bot alive
-keep_alive()
 
 # Bot token
 TELEGRAM_TOKEN = "7792624440:AAHJP9eeCssIISrkiirSMR4Rk4uC2qUV9SM"
@@ -48,25 +45,32 @@ async def handle_mode_selection(update: Update, context: ContextTypes.DEFAULT_TY
     if text == "Quiz Mode":
         user_modes[user_id] = "quiz"
         await update.message.reply_text("Quiz Mode enabled.")
+
     elif text == "JSON Mode":
         user_modes[user_id] = "json"
         user_quiz_data[user_id] = []
         keyboard = [[KeyboardButton("Make JSON")], [KeyboardButton("Back to Menu")]]
         reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
         await update.message.reply_text("JSON Mode enabled. Send quizzes now.", reply_markup=reply_markup)
+
     elif text == "Back to Menu":
         user_modes[user_id] = None
         keyboard = [[KeyboardButton("Quiz Mode")], [KeyboardButton("JSON Mode")]]
         reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
         await update.message.reply_text("Back to main menu.", reply_markup=reply_markup)
+
     elif text == "Make JSON":
         quizzes = user_quiz_data.get(user_id, [])
         if not quizzes:
             await update.message.reply_text("No quizzes added yet.")
         else:
             json_text = json.dumps(quizzes, indent=2, ensure_ascii=False)
-            json_text = json_text.replace("\\n", "\n")  # Fix \n to actual line breaks
-            await update.message.reply_text(f"```json\n{json_text}\n```", parse_mode="Markdown")
+            file_name = f"{user_id}_quizzes.json"
+            with open(file_name, "w", encoding="utf-8") as f:
+                f.write(json_text)
+
+            await update.message.reply_document(document=open(file_name, "rb"), filename="quizzes.json")
+            os.remove(file_name)
 
 # Handle quizzes
 async def handle_poll_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
