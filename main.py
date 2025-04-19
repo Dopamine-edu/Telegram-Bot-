@@ -1,11 +1,10 @@
 import re
 import json
-from telegram import Update, ReplyKeyboardMarkup, KeyboardButton, InputFile
+import os
+from telegram import Update, ReplyKeyboardMarkup, KeyboardButton
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters, ContextTypes
 
-import os
-
-TELEGRAM_TOKEN = os.environ.get("TELEGRAM_TOKEN")
+TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
 
 user_modes = {}
 user_quiz_data = {}
@@ -57,7 +56,8 @@ async def handle_mode_selection(update: Update, context: ContextTypes.DEFAULT_TY
             filename = f"quizzes_{user_id}.json"
             with open(filename, "w", encoding="utf-8") as f:
                 json.dump(quizzes, f, indent=2, ensure_ascii=False)
-            await update.message.reply_document(document=InputFile(filename))
+            with open(filename, "rb") as f:
+                await update.message.reply_document(f)
             os.remove(filename)
 
 async def handle_poll_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -86,6 +86,7 @@ async def handle_poll_message(update: Update, context: ContextTypes.DEFAULT_TYPE
             is_anonymous=is_anonymous,
             explanation=explanation
         )
+
     elif mode == "json":
         clean_q = clean_question_for_json(question)
         clean_exp = clean_explanation_for_json(explanation or "")
@@ -98,6 +99,7 @@ async def handle_poll_message(update: Update, context: ContextTypes.DEFAULT_TYPE
         user_quiz_data.setdefault(user_id, []).append(quiz_data)
         await update.message.reply_text("Quiz saved for JSON export.")
 
+# Setup the bot
 app = ApplicationBuilder().token(TELEGRAM_TOKEN).build()
 app.add_handler(CommandHandler("start", start))
 app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_mode_selection))
