@@ -4,7 +4,7 @@ from telegram import Update, ReplyKeyboardMarkup, KeyboardButton
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters, ContextTypes
 from keep_alive import keep_alive
 
-TELEGRAM_TOKEN = "7792624440:AAHJP9eeCssIISrkiirSMR4Rk4uC2qUV9SM"
+TELEGRAM_TOKEN = "7792624440:AAFuzVV9yRzoNJKbu5eOe-mub3B6h4RxwxE"
 
 user_modes = {}
 user_quiz_data = {}
