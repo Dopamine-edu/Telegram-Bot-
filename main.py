@@ -1,10 +1,14 @@
+
 import re
 import json
+import os
 from telegram import Update, ReplyKeyboardMarkup, KeyboardButton
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters, ContextTypes
 from keep_alive import keep_alive
+from dotenv import load_dotenv
 
-TELEGRAM_TOKEN = "7792624440:AAG3Ddv2o6o-lD9oZSPo_3zxIXoGqYLu8JM"
+load_dotenv()
+TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
 
 user_modes = {}
 user_quiz_data = {}
